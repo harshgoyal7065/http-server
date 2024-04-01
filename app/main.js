@@ -15,11 +15,18 @@ const server = net.createServer((socket) => {
       const [key, value] = header.split(":");
       headers[key.trim()] = value.trim();
     });
-    if (path.startsWith("/echo/")) {
-      const val = path.substring(6);
-      return socket.write(
-        `HTTP/1.1 200 OK${CRLF}Content-Type: text/plain${CRLF}Content-Length:${val.length}${CRLF}${CRLF}${val}${CRLF}`
-      );
+    if (path.startsWith('/echo/')) {
+        const text = path.replace('/echo/', '');
+        const headers = [
+            'HTTP/1.1 200 OK',
+            'Content-Type: text/plain',
+            `Content-Length: ${text.length}`,
+        ]
+        let response = headers.join("\r\n");
+        response += '\r\n\r\n';
+        response += text;
+        socket.write(response);
+        return;
     }
     if (path === "/user-agent") {
       const resHeaders = [
