@@ -2,7 +2,7 @@
 const net = require("net");
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
-// Uncomment this to pass the first stage
+// Handled multiple connections
 const server = net.createServer((socket) => {
   socket.setEncoding("utf-8");
   socket.on("close", () => {
