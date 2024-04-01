@@ -14,6 +14,18 @@ const server = net.createServer((socket) => {
         `HTTP/1.1 200 OK${CRLF}Content-Type: text/plain${CRLF}Content-Length:${val.length}${CRLF}${CRLF}${val}${CRLF}`
       );
     }
+    if (path === '/user-agent') {
+        const resHeaders = [
+            'HTTP/1.1 200 OK',
+            'Content-Type: text/plain',
+            `Content-Length: ${headers['User-Agent'].length}`,
+        ]
+        let response = resHeaders.join(CRLF);
+        response += CRLF;
+        response += headers['User-Agent'];
+        socket.write(response);
+        return;
+    }
     if (path === "" || path === "/") {
         socket.write(`HTTP/1.1 200 OK${CRLF}${CRLF}`);
       } else {
