@@ -6,31 +6,38 @@ console.log("Logs from your program will appear here!");
 
 const server = net.createServer((socket) => {
   socket.on("data", (data) => {
-    const req = data.toString().split(CRLF);
-    const path = req[0].split(" ")[1].trim();
+    const [__headers, _body] = data.toString().split("\r\n\r\n");
+    const _headers = __headers.split("\r\n");
+    const firstLine = _headers.shift().split(" ");
+    const [method, path, pro] = firstLine;
+    const headers = {};
+    _headers.forEach((header) => {
+      const [key, value] = header.split(":");
+      headers[key.trim()] = value.trim();
+    });
     if (path.startsWith("/echo/")) {
       const val = path.substring(6);
       return socket.write(
         `HTTP/1.1 200 OK${CRLF}Content-Type: text/plain${CRLF}Content-Length:${val.length}${CRLF}${CRLF}${val}${CRLF}`
       );
     }
-    if (path === '/user-agent') {
-        const resHeaders = [
-            'HTTP/1.1 200 OK',
-            'Content-Type: text/plain',
-            `Content-Length: ${headers['User-Agent'].length}`,
-        ]
-        let response = resHeaders.join(CRLF);
-        response += CRLF;
-        response += headers['User-Agent'];
-        socket.write(response);
-        return;
+    if (path === "/user-agent") {
+      const resHeaders = [
+        "HTTP/1.1 200 OK",
+        "Content-Type: text/plain",
+        `Content-Length: ${headers["User-Agent"].length}`,
+      ];
+      let response = resHeaders.join(CRLF);
+      response += CRLF;
+      response += headers["User-Agent"];
+      socket.write(response);
+      return;
     }
     if (path === "" || path === "/") {
-        socket.write(`HTTP/1.1 200 OK${CRLF}${CRLF}`);
-      } else {
-        socket.write(`HTTP/1.1 404 Not Found${CRLF}${CRLF}`);
-      }
+      socket.write(`HTTP/1.1 200 OK${CRLF}${CRLF}`);
+    } else {
+      socket.write(`HTTP/1.1 404 Not Found${CRLF}${CRLF}`);
+    }
   });
 
   socket.on("close", () => {
