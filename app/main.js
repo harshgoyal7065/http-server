@@ -1,55 +1,44 @@
-const net = require("net");
-const { CRLF } = require("./constants");
 
+const net = require("net");
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
-
+// Uncomment this to pass the first stage
 const server = net.createServer((socket) => {
-  socket.on("data", (data) => {
-    const [__headers, _body] = data.toString().split("\r\n\r\n");
-    const _headers = __headers.split("\r\n");
-    const firstLine = _headers.shift().split(" ");
-    const [method, path, pro] = firstLine;
-    const headers = {};
-    _headers.forEach((header) => {
-      const [key, value] = header.split(":");
-      headers[key.trim()] = value.trim();
-    });
-    if (path.startsWith('/echo/')) {
-        const text = path.replace('/echo/', '');
-        const headers = [
-            'HTTP/1.1 200 OK',
-            'Content-Type: text/plain',
-            `Content-Length: ${text.length}`,
-        ]
-        let response = headers.join("\r\n");
-        response += '\r\n\r\n';
-        response += text;
-        socket.write(response);
-        return;
-    }
-    if (path === "/user-agent") {
-      const resHeaders = [
-        "HTTP/1.1 200 OK",
-        "Content-Type: text/plain",
-        `Content-Length: ${headers["User-Agent"].length}`,
-      ];
-      let response = resHeaders.join(CRLF);
-      response += CRLF;
-      response += headers["User-Agent"];
-      socket.write(response);
-      return;
-    }
-    if (path === "" || path === "/") {
-      socket.write(`HTTP/1.1 200 OK${CRLF}${CRLF}`);
-    } else {
-      socket.write(`HTTP/1.1 404 Not Found${CRLF}${CRLF}`);
-    }
-  });
-
+  socket.setEncoding("utf-8");
   socket.on("close", () => {
     socket.end();
     server.close();
+  });
+
+  socket.on("data", (data) => {
+    let request_data = data.split("\r\n");
+    if (!request_data.length) {
+      return;
+    }
+    let path = request_data.shift().split(" ")[1];
+    if (path.startsWith("/echo/")) {
+      const val = path.substring(6);
+      let response_string = "HTTP/1.1 200 OK\r\n";
+      response_string += "Content-Type: text/plain\r\n";
+      response_string += `Content-Length: ${val.length}\r\n\r\n`;
+      response_string += val;
+1
+      socket.write(response_string);
+    }
+    if (path === "/") {
+      socket.write("HTTP/1.1 200 OK\r\n\r\n");
+      return;
+    } else if (path === '/user-agent') {
+      const user_agent = request_data[1].split(' ')[1];
+      let response_string = "HTTP/1.1 200 OK\r\n";
+      response_string += "Content-Type: text/plain\r\n";
+      response_string += `Content-Length: ${user_agent.length}\r\n\r\n`;
+      response_string += user_agent;
+1
+      socket.write(response_string);
+    } else {
+      socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
+    }
   });
 });
 
